@@ -74,7 +74,12 @@ class Paypal extends CComponent{
     # It is a mandatory parameter for each API request. 
     # The only supported value at this time is 2.3 
     */
-    public $version = '3.0';
+    public $version = '78';
+
+    /**
+     # logger for the requests of this component
+     */
+    public $logger = null;
     
     public function init(){
         //set return and cancel urls
@@ -102,6 +107,7 @@ class Paypal extends CComponent{
          */ 
         $paymentType =urlencode('Sale'); 
         $firstName =urlencode($paymentInfo['Member']['first_name']); 
+        $email =urlencode($paymentInfo['Member']['email']); 
         $lastName =urlencode($paymentInfo['Member']['last_name']); 
         $creditCardType =urlencode($paymentInfo['CreditCard']['credit_type']); 
         $creditCardNumber = urlencode($paymentInfo['CreditCard']['card_number']); 
@@ -125,8 +131,22 @@ class Paypal extends CComponent{
         /* Construct the request string that will be sent to PayPal. 
            The variable $nvpstr contains all the variables and is a 
            name value pair string with & as a delimiter */ 
-        $nvpstr="&PAYMENTACTION=Sale&IPADDRESS=$ip&AMT=$amount&CREDITCARDTYPE=$creditCardType&ACCT=$creditCardNumber&EXPDATE=".$padDateMonth.$expDateYear."&CVV2=$cvv2Number&FIRSTNAME=$firstName&LASTNAME=$lastName&STREET=$address1&STREET2=$address2&CITYNAME=$city&STATEORPROVINCE=$state".
-        "&POSTALCODE=$zip&COUNTRY=$country&CURRENCYCODE=$currencyCode"; 
+        $nvpstr="&PAYMENTACTION=$paymentType".
+        "&IPADDRESS=$ip".
+        "&AMT=$amount".
+        "&CREDITCARDTYPE=$creditCardType".
+        "&ACCT=$creditCardNumber".
+        "&EXPDATE={$padDateMonth}{$expDateYear}".
+        "&CVV2=$cvv2Number".
+        "&FIRSTNAME=$firstName".
+        "&LASTNAME=$lastName".
+        "&STREET=$address1".
+        "&STREET2=$address2".
+        "&CITYNAME=$city".
+        "&STATEORPROVINCE=$state".
+        "&POSTALCODE=$zip".
+        "&COUNTRY=$country".
+        "&CURRENCYCODE=$currencyCode"; 
          
         /* Make the API call to PayPal, using API signature. 
            The API response is stored in an associative array called $resArray */ 
@@ -140,6 +160,22 @@ class Paypal extends CComponent{
         return $resArray; 
         //Contains 'TRANSACTIONID,AMT,AVSCODE,CVV2MATCH, Or Error Codes' 
     } 
+
+    public function DoReferencePayment($referenceID, $paymentInfo=array()){
+        $nvpStr = "&REFERENCEID=$referenceID";
+
+        /* Make the API call to PayPal, using API signature. 
+           The API response is stored in an associative array called $resArray */ 
+        $resArray=$this->hash_call("DoReferencePayment", $nvpStr);
+
+        /* Display the API response back to the browser. 
+           If the response from PayPal was a success, display the response parameters' 
+           If the response was an error, display the errors received using APIError.php. 
+           */ 
+         
+        return $resArray; 
+        //Contains 'TRANSACTIONID,AMT,AVSCODE,CVV2MATCH, Or Error Codes' 
+    }
 
     public function SetExpressCheckout($paymentInfo=array()){ 
         $amount = urlencode($paymentInfo['Order']['theTotal']);
@@ -175,6 +211,12 @@ class Paypal extends CComponent{
         return $resArray; 
     } 
      
+    public function doGetBalance(){
+        $nvpstr='&RETURNALLCURRENCIES=1'; 
+        $resArray=$this->hash_call("GetBalance",$nvpstr); 
+        return $resArray; 
+    }
+
     public function DoExpressCheckoutPayment($paymentInfo=array()){ 
         $paymentType='Sale'; 
         $currencyCode=$this->currency; 
@@ -234,7 +276,8 @@ class Paypal extends CComponent{
      
         //getting response from server 
         $response = curl_exec($ch); 
-     
+        if($this->logger!==null) $this->logger->log(curl_getinfo($ch));
+        if($this->logger!==null) $this->logger->log($response);
         //convrting NVPResponse to an Associative Array 
         $nvpResArray=$this->deformatNVP($response); 
         $nvpReqArray=$this->deformatNVP($nvpreq); 
@@ -244,7 +287,6 @@ class Paypal extends CComponent{
         }else{  
             curl_close($ch); 
         }
-     
         return $nvpResArray; 
     } 
      
