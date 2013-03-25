@@ -186,8 +186,11 @@ class Paypal extends CComponent{
         //Contains 'TRANSACTIONID,AMT,AVSCODE,CVV2MATCH, Or Error Codes' 
     } 
 
-    public function DoReferencePayment($referenceID, $paymentInfo=array()){
-        $nvpStr = "&REFERENCEID=$referenceID";
+    public function DoReferencePayment($referenceID, $paymentInfo){
+        $amount = urlencode($paymentInfo['amt']);
+        $referenceID = urlencode($referenceID);
+        $nvpStr = "&REFERENCEID=$referenceID".
+        "AMT=$amount";
 
         /* Make the API call to PayPal, using API signature. 
            The API response is stored in an associative array called $resArray */ 
