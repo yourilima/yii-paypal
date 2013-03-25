@@ -89,12 +89,6 @@ class Paypal extends CComponent{
     public $logger = null;
     
     public function init(){
-        //set return and cancel urls
-        $this->returnUrl = Yii::app()->request->getBaseUrl(true).'/'.$this->returnUrl;
-        $this->cancelUrl = Yii::app()->request->getBaseUrl(true).'/'.$this->cancelUrl;
-    }
-    
-    public function __construct(){ 
         if((bool)$this->apiLive === true){
             //live
             $this->paypalUrl = 'https://www.paypal.com/webscr&cmd=_express-checkout&useraction=commit&token='; 
@@ -104,15 +98,40 @@ class Paypal extends CComponent{
             $this->paypalUrl = 'https://www.sandbox.paypal.com/webscr&cmd=_express-checkout&useraction=commit&token=';
             $this->endPoint = 'https://api-3t.sandbox.paypal.com/nvp';
         }
+        //set return and cancel urls
+        $this->returnUrl = Yii::app()->request->getBaseUrl(true).'/'.$this->returnUrl;
+        $this->cancelUrl = Yii::app()->request->getBaseUrl(true).'/'.$this->cancelUrl;
     }
     
+    public function __construct(){ 
+    }
     
+    public function DoCapture($transactionid,$info,$complete=true){
+        $authid = urlencode($transactionid);
+        $amount = urlencode($info['amount']);
+        $complete = urlencode($complete?'Complete':'NotComplete');
+        $nvpstr = "&AUTHORIZATIONID=$authid".
+        "&AMT=$amount".
+        "COMPLETETYPE=$complete";
+
+        /* Make the API call to PayPal, using API signature. 
+           The API response is stored in an associative array called $resArray */ 
+        $resArray=$this->hash_call("doCapture",$nvpstr); 
+         
+        /* Display the API response back to the browser. 
+           If the response from PayPal was a success, display the response parameters' 
+           If the response was an error, display the errors received using APIError.php. 
+           */ 
+         
+        return $resArray; 
+        //Contains 'TRANSACTIONID,AMT,AVSCODE,CVV2MATCH, Or Error Codes' 
+    }
      
-    public function DoDirectPayment($paymentInfo=array()){ 
+    public function DoDirectPayment($paymentInfo=array(),$type='Authorization'){ 
         /** 
          * Get required parameters from the web form for the request 
          */ 
-        $paymentType =urlencode('Sale'); 
+        $paymentType =urlencode($type); 
         $firstName =urlencode($paymentInfo['Member']['first_name']); 
         $email =urlencode($paymentInfo['Member']['email']); 
         $lastName =urlencode($paymentInfo['Member']['last_name']); 
@@ -131,7 +150,6 @@ class Paypal extends CComponent{
          
         $amount = urlencode($paymentInfo['Order']['theTotal']); 
         $currencyCode=$this->currency; 
-        $paymentType=urlencode('Sale'); 
          
         $ip=$_SERVER['REMOTE_ADDR']; 
          
