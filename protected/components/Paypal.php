@@ -108,7 +108,7 @@ class Paypal extends CComponent{
     
     public function DoCapture($transactionid,$info,$complete=true){
         $authid = urlencode($transactionid);
-        $amount = urlencode($info['amount']);
+        $amount = urlencode($info['amt']);
         $complete = urlencode($complete?'Complete':'NotComplete');
         $nvpstr = "&AUTHORIZATIONID=$authid".
         "&AMT=$amount".
