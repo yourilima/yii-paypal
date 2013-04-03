@@ -194,7 +194,7 @@ class Paypal extends CComponent{
 
         /* Make the API call to PayPal, using API signature. 
            The API response is stored in an associative array called $resArray */ 
-        $resArray=$this->hash_call("DoReferencePayment", $nvpStr);
+        $resArray=$this->hash_call("DoReferenceTransaction", $nvpStr);
 
         /* Display the API response back to the browser. 
            If the response from PayPal was a success, display the response parameters' 
