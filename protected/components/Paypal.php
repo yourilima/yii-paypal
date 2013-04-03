@@ -112,7 +112,7 @@ class Paypal extends CComponent{
         $complete = urlencode($complete?'Complete':'NotComplete');
         $nvpstr = "&AUTHORIZATIONID=$authid".
         "&AMT=$amount".
-        "COMPLETETYPE=$complete";
+        "&COMPLETETYPE=$complete";
 
         /* Make the API call to PayPal, using API signature. 
            The API response is stored in an associative array called $resArray */ 
@@ -186,11 +186,13 @@ class Paypal extends CComponent{
         //Contains 'TRANSACTIONID,AMT,AVSCODE,CVV2MATCH, Or Error Codes' 
     } 
 
-    public function DoReferencePayment($referenceID, $paymentInfo){
+    public function DoReferencePayment($referenceID, $paymentInfo,$type='Authorization'){
+        $paymentType =urlencode($type); 
         $amount = urlencode($paymentInfo['amt']);
         $referenceID = urlencode($referenceID);
-        $nvpStr = "&REFERENCEID=$referenceID".
-        "AMT=$amount";
+        $nvpStr = "&PAYMENTACTION=$paymentType".
+        "&REFERENCEID=$referenceID".
+        "&AMT=$amount";
 
         /* Make the API call to PayPal, using API signature. 
            The API response is stored in an associative array called $resArray */ 
@@ -200,7 +202,6 @@ class Paypal extends CComponent{
            If the response from PayPal was a success, display the response parameters' 
            If the response was an error, display the errors received using APIError.php. 
            */ 
-         
         return $resArray; 
         //Contains 'TRANSACTIONID,AMT,AVSCODE,CVV2MATCH, Or Error Codes' 
     }
@@ -301,7 +302,6 @@ class Paypal extends CComponent{
      
         //setting the nvpreq as POST FIELD to curl 
         curl_setopt($ch,CURLOPT_POSTFIELDS,$nvpreq); 
-     
         //getting response from server 
         $response = curl_exec($ch); 
         if($this->logger!==null) $this->logger->log(curl_getinfo($ch));
