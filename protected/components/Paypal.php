@@ -110,8 +110,10 @@ class Paypal extends CComponent{
         $authid = urlencode($transactionid);
         $amount = urlencode($info['amt']);
         $complete = urlencode($complete?'Complete':'NotComplete');
+        $currencyCode=$this->currency; 
         $nvpstr = "&AUTHORIZATIONID=$authid".
         "&AMT=$amount".
+        "&CURRENCYCODE=$currencyCode".
         "&COMPLETETYPE=$complete";
 
         /* Make the API call to PayPal, using API signature. 
