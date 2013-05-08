@@ -192,9 +192,11 @@ class Paypal extends CComponent{
         $paymentType =urlencode($type); 
         $amount = urlencode($paymentInfo['amt']);
         $referenceID = urlencode($referenceID);
+        $currencyCode=$this->currency; 
         $nvpStr = "&PAYMENTACTION=$paymentType".
         "&REFERENCEID=$referenceID".
-        "&AMT=$amount";
+        "&AMT=$amount".
+        "&CURRENCYCODE=$currencyCode";
 
         /* Make the API call to PayPal, using API signature. 
            The API response is stored in an associative array called $resArray */ 
